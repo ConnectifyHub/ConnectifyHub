@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 /Application/appconfig.json
 /Main/appconfig.json
+/Server/Server.csproj
+/Server/appconfig.json
+/Server/appconfig.json
