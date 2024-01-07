@@ -1,0 +1,7 @@
+{
+  "databases": {
+    "planetScale": {
+      "connectionString": "your_example_planetscale_token"
+    }
+  }
+}
