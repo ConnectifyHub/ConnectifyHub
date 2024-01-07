@@ -1,0 +1,64 @@
+﻿<Window x:Class="Main.RegistrationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Main"
+        mc:Ignorable="d"
+        Title="RegistrationWindow" Height="450" Width="800">
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="ConnectifyHub Регистрация" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="Bold"/>
+
+        <Grid Grid.Row="1" Margin="50" HorizontalAlignment="Stretch">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="* - обязательные поля" Grid.Row="0" Grid.Column="0" Margin="0, 0, 0, 20"/>
+
+            <TextBlock Text="* Почта:" Grid.Row="1"/>
+            <TextBox Name="txtEmail" Grid.Row="1" Grid.Column="1" Margin="10,5,0,10" LostFocus="txtEmail_LostFocus"/>
+
+            <TextBlock Text="* Пароль:" Grid.Row="2"/>
+            <PasswordBox Name="txtPassword" Grid.Row="2" Grid.Column="1" Margin="10,5,0,10" LostFocus="txtPassword_LostFocus"/>
+
+            <TextBlock Text="* Повтор пароля:" Grid.Row="3"/>
+            <PasswordBox Name="txtPasswordConfirm" Grid.Row="3" Grid.Column="1" Margin="10,5,0,10" LostFocus="txtPasswordConfirm_LostFocus"/>
+
+            <TextBlock Text="Имя:" Grid.Row="4"/>
+            <TextBox Name="txtFirstName" Grid.Row="4" Grid.Column="1" Margin="10,5,0,10" LostFocus="txtFirstName_LostFocus"/>
+
+            <TextBlock Text="Фамилия:" Grid.Row="5"/>
+            <TextBox Name="txtLastName" Grid.Row="5" Grid.Column="1" Margin="10,5,0,10" LostFocus="txtLastName_LostFocus"/>
+
+            <TextBlock Text="Номер телефона:" Grid.Row="6"/>
+            <TextBox Name="txtPhone" Grid.Row="6" Grid.Column="1" Margin="10,5,0,10" LostFocus="txtPhone_LostFocus"/>
+
+            <Button Content="Вернуться" Grid.Row="7" Width="100" Height="30" HorizontalAlignment="Left" Click="Back_Click"/>
+            <Button Content="Зарегестрироваться" Grid.Row="7" Grid.Column="1" Width="150" Height="30" Click="Register_Click" HorizontalAlignment="Left"/>
+        </Grid>
+
+        <!-- GridSplitter for vertical resizing -->
+        <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="Gray" ResizeBehavior="PreviousAndNext"/>
+
+        <!-- Add more GridSplitters for horizontal resizing if needed -->
+    </Grid>
+</Window>

@@ -16,17 +16,11 @@
 
         <TextBlock Text="ConnectifyHub Login" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="Bold"/>
 
-        <StackPanel Grid.Row="1" Margin="20">
-            <TextBlock Text="Username:"/>
-            <TextBox Name="txtUsername" Width="200" Margin="0,5,0,10"/>
-
-            <TextBlock Text="Password:"/>
+        <StackPanel Grid.Row="1" Margin="50">
+            <TextBox Name="txtEmail" Width="200" Text="Почта" Margin="0,5,0,10"/>
             <PasswordBox Name="txtPassword" Width="200" Margin="0,5,0,10"/>
-
-            <Button Content="Login" Width="100" Height="30" Click="Login_Click" HorizontalAlignment="Left"/>
-            <TextBlock Text="Don't have an account?">
-            <Hyperlink Click="Register_Click">Register here</Hyperlink>
-            </TextBlock>
+            <Button Content="Вход" Width="100" Height="30" Click="Login_Click"/>
+            <Button Content="Регистрация" Width="100" Height="30" Margin="10" Click="Register_Click"/>
         </StackPanel>
     </Grid>
 </Window>

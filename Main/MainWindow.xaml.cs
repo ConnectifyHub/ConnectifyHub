@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net.Sockets;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,6 +17,7 @@ namespace Main
     /// </summary>
     public partial class MainWindow : Window
     {
+        ServerCommunication serverCommunication = ServerCommunication.Instance;
         public MainWindow()
         {
             InitializeComponent();
@@ -23,12 +25,14 @@ namespace Main
 
         private void Login_Click(object sender, RoutedEventArgs e)
         {
-            // Add logic to handle login
+
         }
 
         private void Register_Click(object sender, RoutedEventArgs e)
         {
-            // Add logic to navigate to the registration page or display a registration form
+            RegistrationWindow registrationWindow = new RegistrationWindow();
+            registrationWindow.Show();
+            this.Close();
         }
     }
 }
