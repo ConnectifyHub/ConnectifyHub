@@ -29,24 +29,53 @@ namespace Main
 
         public string SendAndReceive(string message)
         {
-            if (message.Contains("|"))
+            try
             {
-                string[] parts = message.Split('|');
-                if (parts[1].Length == 0) return null;
-            }
-            byte[] data = Encoding.UTF8.GetBytes(message);
-            stream.Write(data, 0, data.Length);
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                stream.Write(data, 0, data.Length);
 
-            byte[] responseBuffer = new byte[1024];
-            int bytesRead = stream.Read(responseBuffer, 0, responseBuffer.Length);
-            return Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
-            
+                byte[] responseBuffer = new byte[1024];
+                int bytesRead = stream.Read(responseBuffer, 0, responseBuffer.Length);
+                return Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
+            }
+            catch
+            {
+                ShowConnectionErrorDialog();
+                return null;
+            }
         }
 
         public void CloseConnection()
         {
             stream.Close();
             client.Close();
+        }
+
+        private void ShowConnectionErrorDialog()
+        {
+            var dialog = new ConnectionErrorDialog();
+            bool? result = dialog.ShowDialog();
+
+            if (result == true)
+            {
+                RetryConnection();
+            }
+            else
+            {
+                Environment.Exit(0);
+            }
+        }
+
+        private void RetryConnection()
+        {
+            try
+            {
+                instance = Instance;
+            }
+            catch
+            {
+                ShowConnectionErrorDialog();
+            }
         }
     }
 }
