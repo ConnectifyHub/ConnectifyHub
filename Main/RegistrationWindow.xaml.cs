@@ -23,23 +23,6 @@ namespace Main
             this.Close();
         }
 
-        private async void Register_Click(object sender, RoutedEventArgs e)
-        {
-            /*if (txtEmail.BorderBrush == Brushes.Green &&
-                txtPassword.BorderBrush == Brushes.Green &&
-                txtPasswordConfirm.BorderBrush == Brushes.Green)
-            {
-                var brevoEmailVerifier = new BrevoEmailVerifier();
-                bool isEmailValid = await brevoEmailVerifier.VerifyEmailAsync(txtEmail.Text);
-
-                MessageBox.Show("Регистрация успешна!");
-            }
-            else
-            {
-                MessageBox.Show("Пожалуйста корректно заполните все обязательные пункты", "Ошибка регистрации", MessageBoxButton.OK, MessageBoxImage.Error);
-            }*/
-        }
-
         private void txtEmail_LostFocus(object sender, RoutedEventArgs e)
         {
             string email = txtEmail.Text;
@@ -86,7 +69,7 @@ namespace Main
             }
             else
             {
-                txtFirstName.BorderBrush = Brushes.Gray;
+                txtFirstName.BorderBrush = Brushes.Red;
             }
         }
 
@@ -115,6 +98,33 @@ namespace Main
             else
             {
                 txtPhone.BorderBrush = Brushes.Gray;
+            }
+        }
+
+        private async void Register_Click(object sender, RoutedEventArgs e)
+        {
+            if (txtEmail.BorderBrush == Brushes.Green &&
+                txtPassword.BorderBrush == Brushes.Green &&
+                txtPasswordConfirm.BorderBrush == Brushes.Green)
+            {
+                string RegisterMeStr = "RegisterMe|" + txtEmail.Text + "|" + txtPassword.Password + "|" + txtFirstName.Text + "|" + txtLastName.Text + "|" + txtPhone.Text;
+                string Registered = serverCommunication.SendAndReceive(RegisterMeStr);
+                if (Registered != null)
+                {
+                    MessageBox.Show("Регистрация успешна!");
+                   MainWindow mainWindow = new MainWindow();
+            mainWindow.Show();
+            this.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Ошибка регистрации", "Случилась ошибка на сервере при регистрации. Попробуйте позже", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                }
+            }
+            else
+            {
+                MessageBox.Show("Пожалуйста корректно заполните все обязательные пункты", "Ошибка регистрации", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
