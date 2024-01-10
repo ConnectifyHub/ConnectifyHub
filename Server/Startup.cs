@@ -1,4 +1,5 @@
 ﻿using Server;
+using Server.Data.Entities;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -31,6 +32,22 @@ namespace Server
             }
         }
 
+        private readonly Dictionary<string, Func<string[], bool>> validationMethods = new Dictionary<string, Func<string[], bool>>
+        {
+            { "IsValidEmail", ValidationHelper.IsValidEmail },
+            { "IsStrongPassword", ValidationHelper.IsStrongPassword },
+            { "IsValidFirstName", ValidationHelper.IsValidFirstName },
+            { "IsValidLastName", ValidationHelper.IsValidLastName },
+            { "IsValidPhoneNumber", ValidationHelper.IsValidPhoneNumber },
+            { "Login", ValidationHelper.IsValidEmailAndPassword }
+        };
+
+        private readonly Dictionary<string, Action<User>> databaseMethods = new Dictionary<string, Action<User>>
+        {
+            { "RegisterMe", DatabaseUtils.AddUser },
+        };
+
+
         private void HandleClientComm(object clientObj)
         {
             TcpClient tcpClient = (TcpClient)clientObj;
@@ -57,50 +74,35 @@ namespace Server
 
                 string receivedMessage = Encoding.UTF8.GetString(message, 0, bytesRead);
                 Console.WriteLine($"Received message from client: {receivedMessage}");
+
                 if (receivedMessage.Contains("|"))
                 {
+
                     string[] parts = receivedMessage.Split('|');
                     string leftPart = parts[0];
-                    bool correct = false;
-                    bool responce = false;
+                    if (parts[1].Length == 0) return;
 
-                    if (leftPart == "IsValidEmail")
+                    bool isValid = false;
+
+                    if (databaseMethods.TryGetValue(leftPart, out var databaseMethod))
                     {
-                        correct = true;
-                        responce = ValidationHelper.IsValidEmail(parts[1]);
-                    }
+                        string userDataString = receivedMessage.Substring(leftPart.Length + 1);
+                        User userData = DataStrParser.ParseUserFromString(userDataString);
+                        string methodName = parts[0];
 
-                    if (leftPart == "IsStrongPassword")
+                        databaseMethod(userData);
+                        isValid = true;
+                    }
+                    if (validationMethods.TryGetValue(leftPart, out var validationMethod))
                     {
-                        correct = true;
-                        responce = ValidationHelper.IsStrongPassword(parts[1]);
+                        isValid = validationMethod(parts);
                     }
 
-                    if (leftPart == "IsValidFirstName")
-                    {
-                        correct = true;
-                        responce = ValidationHelper.IsValidFirstName(parts[1]);
-                    }
+                    Console.WriteLine($"Sending response to client: {isValid}");
+                    byte[] responseData = Encoding.UTF8.GetBytes(isValid.ToString());
+                    clientStream.Write(responseData, 0, responseData.Length);
 
-                    if (leftPart == "IsValidLastName")
-                    {
-                        correct = true;
-                        responce = ValidationHelper.IsValidLastName(parts[1]);
-                    }
-
-                    if (leftPart == "IsValidPhoneNumber")
-                    {
-                        correct = true;
-                        responce = ValidationHelper.IsValidPhoneNumber(parts[1]);
-                    }
-
-                    if (correct) {
-                        Console.WriteLine("Sending responce to client: " + responce.ToString());
-                        byte[] responseData = Encoding.UTF8.GetBytes(responce.ToString());
-                        clientStream.Write(responseData, 0, responseData.Length);
-                    }
                 }
-
             }
 
             tcpClient.Close();
