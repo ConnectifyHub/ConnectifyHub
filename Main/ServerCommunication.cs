@@ -11,8 +11,14 @@ namespace Main
 
         private ServerCommunication(string serverAddress, int serverPort)
         {
-            client = new TcpClient(serverAddress, serverPort);
-            stream = client.GetStream();
+            try
+            {
+                client = new TcpClient(serverAddress, serverPort);
+                stream = client.GetStream();
+            } catch {
+                ShowConnectionErrorDialog();
+                return;
+            }
         }
 
         public static ServerCommunication Instance
