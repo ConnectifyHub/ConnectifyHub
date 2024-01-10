@@ -3,7 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace Application.Data
+namespace Server.Data
 {
     public class DataContext : DbContext
     {
@@ -11,7 +11,7 @@ namespace Application.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var config = JsonSerializer.Deserialize<JsonNode>(File.ReadAllText("appconfig.json"));
+            var config = JsonSerializer.Deserialize<JsonNode>(File.ReadAllText("..\\..\\..\\appconfig.json"));
             optionsBuilder.UseMySql(config["databases"]["planetScale"]["connectionString"].ToString(), new MySqlServerVersion(new Version(8, 0, 34)));
         }
     }
