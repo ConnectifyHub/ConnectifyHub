@@ -1,7 +1,9 @@
-﻿using System.Net.Sockets;
+﻿using Newtonsoft.Json;
+using System.Net.Sockets;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.IO;
 
 namespace Main
 {
@@ -87,34 +89,21 @@ namespace Main
             }
         }
 
-        private void txtPhone_LostFocus(object sender, RoutedEventArgs e)
-        {
-            string phoneNumber = txtPhone.Text;
-            string isValidPhoneNumber = serverCommunication.SendAndReceive("IsValidPhoneNumber|" + phoneNumber);
-            if (isValidPhoneNumber != null)
-            {
-                txtPhone.BorderBrush = isValidPhoneNumber.Equals("True") ? Brushes.Green : Brushes.Red;
-            }
-            else
-            {
-                txtPhone.BorderBrush = Brushes.Gray;
-            }
-        }
-
         private async void Register_Click(object sender, RoutedEventArgs e)
         {
             if (txtEmail.BorderBrush == Brushes.Green &&
                 txtPassword.BorderBrush == Brushes.Green &&
                 txtPasswordConfirm.BorderBrush == Brushes.Green)
             {
-                string RegisterMeStr = "RegisterMe|" + txtEmail.Text + "|" + txtPassword.Password + "|" + txtFirstName.Text + "|" + txtLastName.Text + "|" + txtPhone.Text;
+                string RegisterMeStr = "RegisterMe|" + txtEmail.Text + "|" + txtPassword.Password + "|" + txtFirstName.Text + "|" + txtLastName.Text;
                 string Registered = serverCommunication.SendAndReceive(RegisterMeStr);
                 if (Registered != null)
                 {
                     MessageBox.Show("Регистрация успешна!");
-                   MainWindow mainWindow = new MainWindow();
-            mainWindow.Show();
-            this.Close();
+                    MainWindow mainWindow = new MainWindow();
+                    File.WriteAllText("registration_data.json", $"${Registered}");
+                    mainWindow.Show();
+                    this.Close();
                 }
                 else
                 {

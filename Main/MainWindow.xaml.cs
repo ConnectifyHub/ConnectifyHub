@@ -1,15 +1,10 @@
 ﻿using Main;
-using System.Net.Sockets;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.IO;
+using System.Text.Json.Nodes;
+using System.Text.Json;
+
 
 namespace Main
 {
@@ -23,6 +18,17 @@ namespace Main
         public MainWindow()
         {
             InitializeComponent();
+            LoadRegistrationDataFromJson();
+        }
+
+        private void LoadRegistrationDataFromJson()
+        {
+            if (File.Exists("registration_data.json"))
+            {
+                var jsonContent = File.ReadAllText("registration_data.json");
+                string latest_email = serverCommunication.SendAndReceive("LatestLoginInfo|" + jsonContent);
+                txtEmail.Text = latest_email != "False" ? latest_email : "Почта";
+            }
         }
 
         private void Login_Click(object sender, RoutedEventArgs e)
@@ -32,9 +38,13 @@ namespace Main
 
             string loginResponse = serverCommunication.SendAndReceive($"Login|{email}|{password}");
 
-            if (loginResponse.Equals("True"))
+            if (!loginResponse.Equals("False"))
             {
                 MessageBox.Show("Вы успешно зашли!");
+                File.WriteAllText("registration_data.json", $"{loginResponse}");
+                LoginedWindow loginedWindow = new LoginedWindow();
+                loginedWindow.Show();
+                this.Close();
             }
             else
             {
