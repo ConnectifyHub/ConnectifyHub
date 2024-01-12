@@ -39,7 +39,7 @@ namespace Server
             { "IsValidFirstName", ValidationHelper.IsValidFirstName },
             { "IsValidLastName", ValidationHelper.IsValidLastName },
             { "IsValidPhoneNumber", ValidationHelper.IsValidPhoneNumber },
-            { "Login", ValidationHelper.IsValidEmailAndPassword },
+            { "Login", ValidationHelper.IsValidEmailAndPassword }
         };
 
         private readonly Dictionary<string, Action<User>> databaseMethods = new Dictionary<string, Action<User>>
@@ -107,6 +107,17 @@ namespace Server
                         if (leftPart == "WhoAmI")
                         {
                             customMessage = DatabaseUtils.GetUserByKeyStringified(parts[1]);
+                        }
+
+                        if (leftPart == "SendMessage")
+                        {
+                            DatabaseUtils.SendMessage(parts[1], parts[2], parts[3]);
+                            isValid = true;
+                        }
+
+                        if (leftPart == "GetMessages")
+                        {
+                            customMessage = DatabaseUtils.GetMessagesFromChat(parts[1]);
                         }
 
                         if ((leftPart == "Login" || leftPart == "RegisterMe") && isValid == true)
