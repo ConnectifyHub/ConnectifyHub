@@ -113,6 +113,62 @@ namespace Server
             }
         }
 
+        public static void SendMessage(string message, string key, string chat_id)
+        {
+            using (var context = GetContext())
+            {
+                var user = context.Users.FirstOrDefault(u => u.PublicIdentityKey == key);
+                var ReadyMessage = new Message()
+                {
+                    ChatId = chat_id,
+                    AuthorId = user.Id,
+                    Text = message
+                };
+                context.Messages.Add(ReadyMessage);
+                context.SaveChanges();
+            }
+        }
+
+        public static string GetMessagesFromChat(string chatid/*, int page*/)
+        {
+            using (var context = GetContext())
+            {
+                try
+                {
+                    var messagesQuery = context.Messages
+                        .Where(m => m.ChatId == chatid)
+                        .OrderByDescending(m => m.Sended);
+
+                    /*if (page > 0)
+                    {
+                        var skippedMessages = messagesQuery.Skip((page - 1) * 10);
+                        messagesQuery = (IOrderedQueryable<Message>)skippedMessages;
+                    }*/
+
+                    var messages = messagesQuery.Take(10).ToList();
+
+                    StringBuilder stringBuilder = new StringBuilder();
+
+                    foreach (var message in messages)
+                    {
+                        var user = context.Users.FirstOrDefault(u => u.Id == message.AuthorId);
+
+                        if (user != null)
+                        {
+                            stringBuilder.Append($"{user.Name}|{message.Text}|{message.Sended}||");
+                        }
+                    }
+
+                    return stringBuilder.ToString();
+                }
+                catch (Exception ex)
+                {
+                    // Handle exceptions (e.g., log or return an error message).
+                    return $"Error retrieving messages: {ex.Message}";
+                }
+            }
+        }
+
         public static void UpdateUser(int userId, User updatedUser)
         {
             using (var context = GetContext())
