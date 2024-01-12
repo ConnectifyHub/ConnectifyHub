@@ -9,8 +9,9 @@ namespace Server.Data.Entities
     public class Message
     {
         public int Id { get; set; }
-        public int? ChatId { get; set; }
+        public string? ChatId { get; set; }
         public int? AuthorId { get; set; }
+        public string? Text { get; set; }
         public DateTime Sended { get; set; } = DateTime.Now;
 
     }
