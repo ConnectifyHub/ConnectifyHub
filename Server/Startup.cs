@@ -39,13 +39,14 @@ namespace Server
             { "IsValidFirstName", ValidationHelper.IsValidFirstName },
             { "IsValidLastName", ValidationHelper.IsValidLastName },
             { "IsValidPhoneNumber", ValidationHelper.IsValidPhoneNumber },
-            { "Login", ValidationHelper.IsValidEmailAndPassword },
+            { "Login", ValidationHelper.IsValidEmailAndPassword }
         };
 
         private readonly Dictionary<string, Action<User>> databaseMethods = new Dictionary<string, Action<User>>
         {
             { "RegisterMe", DatabaseUtils.AddUser },
         };
+
 
         private void HandleClientComm(object clientObj)
         {
@@ -76,47 +77,29 @@ namespace Server
 
                 if (receivedMessage.Contains("|"))
                 {
+
                     string[] parts = receivedMessage.Split('|');
                     string leftPart = parts[0];
+                    if (parts[1].Length == 0) return;
 
                     bool isValid = false;
-                    string customMessage = null;
 
-                    if (parts[1].Length != 0)
+                    if (databaseMethods.TryGetValue(leftPart, out var databaseMethod))
                     {
-                        if (databaseMethods.TryGetValue(leftPart, out var databaseMethod))
-                        {
-                            string userDataString = receivedMessage.Substring(leftPart.Length + 1);
-                            User userData = DataStrParser.ParseUserFromString(userDataString);
-                            string methodName = parts[0];
+                        string userDataString = receivedMessage.Substring(leftPart.Length + 1);
+                        User userData = DataStrParser.ParseUserFromString(userDataString);
+                        string methodName = parts[0];
 
-                            databaseMethod(userData);
-                            isValid = true;
-                        }
-                        if (validationMethods.TryGetValue(leftPart, out var validationMethod))
-                        {
-                            isValid = validationMethod(parts);
-                        }
-
-                        if (leftPart == "LatestLoginInfo")
-                        {
-                            var user = DatabaseUtils.GetUserByKey(parts[1]);
-                            customMessage = user != null ? user.Email : null;
-                        }
-
-                        if (leftPart == "WhoAmI")
-                        {
-                            customMessage = DatabaseUtils.GetUserByKeyStringified(parts[1]);
-                        }
-
-                        if ((leftPart == "Login" || leftPart == "RegisterMe") && isValid == true)
-                        {
-                            customMessage = DatabaseUtils.GeneratePublicKey(parts[1]);
-                        }
+                        databaseMethod(userData);
+                        isValid = true;
+                    }
+                    if (validationMethods.TryGetValue(leftPart, out var validationMethod))
+                    {
+                        isValid = validationMethod(parts);
                     }
 
-                    Console.WriteLine($"Sending response to client: {(customMessage != null ? customMessage : isValid)}");
-                    byte[] responseData = Encoding.UTF8.GetBytes(customMessage != null ? customMessage.ToString() : isValid.ToString());
+                    Console.WriteLine($"Sending response to client: {isValid}");
+                    byte[] responseData = Encoding.UTF8.GetBytes(isValid.ToString());
                     clientStream.Write(responseData, 0, responseData.Length);
 
                 }

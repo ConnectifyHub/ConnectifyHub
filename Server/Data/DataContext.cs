@@ -8,11 +8,10 @@ namespace Server.Data
     public class DataContext : DbContext
     {
         public DbSet<Entities.User> Users { get; set; }
-        public DbSet<Entities.Message> Messages { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var config = JsonSerializer.Deserialize<JsonNode>(File.ReadAllText("appconfig.json"));
+            var config = JsonSerializer.Deserialize<JsonNode>(File.ReadAllText("..\\..\\..\\appconfig.json"));
             optionsBuilder.UseMySql(config["databases"]["planetScale"]["connectionString"].ToString(), new MySqlServerVersion(new Version(8, 0, 34)));
         }
     }
