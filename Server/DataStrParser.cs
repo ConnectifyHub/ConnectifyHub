@@ -19,8 +19,7 @@ namespace Server
                 Email = parts[0],
                 Password = parts[1],
                 Name = parts[2],
-                Surname = parts[3],
-                Phone = parts[4]
+                Surname = parts[3]
             };
 
             return newUser;
