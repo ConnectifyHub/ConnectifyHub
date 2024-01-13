@@ -19,6 +19,13 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,2">
+                <GradientStop Color="#FFA500" Offset="0.0"/>
+                <GradientStop Color="White" Offset="1.0"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
         <TextBlock Text="ConnectifyHub Login" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="Bold"/>
 
         <StackPanel Grid.Row="1" Margin="50" HorizontalAlignment="Center" VerticalAlignment="Center">
