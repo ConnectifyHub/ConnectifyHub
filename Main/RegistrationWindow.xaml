@@ -55,7 +55,7 @@
             <TextBox Name="txtLastName" Grid.Row="5" Grid.Column="1" Margin="10,5,0,10" LostFocus="txtLastName_LostFocus"/>
 
             <Button Content="Вернуться" Grid.Row="7" Width="100" Height="30" HorizontalAlignment="Left" Click="Back_Click"/>
-            <Button Content="Зарегестрироваться" Grid.Row="7" Grid.Column="1" Width="150" Height="30" Click="Register_Click" HorizontalAlignment="Center"/>
+            <Button Content="Зарегистрироваться" Grid.Row="7" Grid.Column="1" Width="150" Height="30" Click="Register_Click" HorizontalAlignment="Center"/>
         </Grid>
     </Grid>
 </Window>
