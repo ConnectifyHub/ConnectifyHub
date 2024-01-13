@@ -27,7 +27,7 @@ namespace Main
             {
                 if (instance == null)
                 {
-                    instance = /*new ServerCommunication("connectifyhub.space", 1234);*/ new ServerCommunication("127.0.0.1", 1234);
+                    instance = new ServerCommunication("connectifyhub.space", 1234);
                 }
                 return instance;
             }
