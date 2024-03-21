@@ -28,7 +28,7 @@ namespace Main
         private void txtEmail_LostFocus(object sender, RoutedEventArgs e)
         {
             string email = txtEmail.Text;
-            string isValidEmail = serverCommunication.SendAndReceive("IsValidEmail|" + email);  // Correct the method call
+            string isValidEmail = serverCommunication.SendAndReceive("IsValidEmail", email);  // Correct the method call
             if (isValidEmail != null)
             {
                 txtEmail.BorderBrush = isValidEmail.Equals("True") ? Brushes.Green : Brushes.Red;
@@ -42,7 +42,7 @@ namespace Main
         private void txtPassword_LostFocus(object sender, RoutedEventArgs e)
         {
             string password = txtPassword.Password;
-            string isStrongPassword = serverCommunication.SendAndReceive("IsStrongPassword|" + password);
+            string isStrongPassword = serverCommunication.SendAndReceive("IsStrongPassword|", password);
             if (isStrongPassword != null)
             {
                 txtPassword.BorderBrush = isStrongPassword.Equals("True") ? Brushes.Green : Brushes.Red;
@@ -64,7 +64,7 @@ namespace Main
         private void txtFirstName_LostFocus(object sender, RoutedEventArgs e)
         {
             string firstName = txtFirstName.Text;
-            string isValidFirstName = serverCommunication.SendAndReceive("IsValidFirstName|" + firstName);
+            string isValidFirstName = serverCommunication.SendAndReceive("IsValidFirstName|", firstName);
             if (isValidFirstName != null)
             {
                 txtFirstName.BorderBrush = isValidFirstName.Equals("True") ? Brushes.Green : Brushes.Red;
@@ -78,7 +78,7 @@ namespace Main
         private void txtLastName_LostFocus(object sender, RoutedEventArgs e)
         {
             string lastName = txtLastName.Text;
-            string isValidLastName = serverCommunication.SendAndReceive("IsValidLastName|" + lastName);
+            string isValidLastName = serverCommunication.SendAndReceive("IsValidLastName|", lastName);
             if (isValidLastName != null)
             {
                 txtLastName.BorderBrush = isValidLastName.Equals("True") ? Brushes.Green : Brushes.Red;
@@ -95,8 +95,8 @@ namespace Main
                 txtPassword.BorderBrush == Brushes.Green &&
                 txtPasswordConfirm.BorderBrush == Brushes.Green)
             {
-                string RegisterMeStr = "RegisterMe|" + txtEmail.Text + "|" + txtPassword.Password + "|" + txtFirstName.Text + "|" + txtLastName.Text;
-                string Registered = serverCommunication.SendAndReceive(RegisterMeStr);
+                string RegisterMeStr = txtEmail.Text + "|" + txtPassword.Password + "|" + txtFirstName.Text + "|" + txtLastName.Text;
+                string Registered = serverCommunication.SendAndReceive("RegisterMe", RegisterMeStr);
                 if (Registered != null)
                 {
                     MessageBox.Show("Регистрация успешна!");

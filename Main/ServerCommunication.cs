@@ -27,17 +27,17 @@ namespace Main
             {
                 if (instance == null)
                 {
-                    instance = new ServerCommunication("connectifyhub.space", 1234);
+                    instance = new ServerCommunication("monorail.proxy.rlwy.net", 47917);
                 }
                 return instance;
             }
         }
 
-        public string SendAndReceive(string message)
+        public string SendAndReceive(string endpoint, string message)
         {
             try
             {
-                byte[] data = Encoding.UTF8.GetBytes(message);
+                byte[] data = Encoding.UTF8.GetBytes(endpoint + "|" + message);
                 stream.Write(data, 0, data.Length);
 
                 byte[] responseBuffer = new byte[1024];

@@ -26,7 +26,7 @@ namespace Main
             if (File.Exists("registration_data.json"))
             {
                 var jsonContent = File.ReadAllText("registration_data.json");
-                string latest_email = serverCommunication.SendAndReceive("LatestLoginInfo|" + jsonContent);
+                string latest_email = serverCommunication.SendAndReceive("LatestLoginInfo", jsonContent);
                 txtEmail.Text = latest_email != "False" ? latest_email : "Почта";
             }
         }
@@ -36,7 +36,7 @@ namespace Main
             string email = txtEmail.Text;
             string password = txtPassword.Password;
 
-            string loginResponse = serverCommunication.SendAndReceive($"Login|{email}|{password}");
+            string loginResponse = serverCommunication.SendAndReceive("Login", $"{email}|{password}");
 
             if (!loginResponse.Equals("False"))
             {

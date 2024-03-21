@@ -29,7 +29,7 @@ namespace Main
         {
             InitializeComponent();
             var jsonContent = File.ReadAllText("registration_data.json");
-            string[] whoami = (serverCommunication.SendAndReceive("WhoAmI|" + jsonContent)).Split("|");
+            string[] whoami = (serverCommunication.SendAndReceive("WhoAmI|", jsonContent)).Split("|");
             User = new
             {
                 Email = whoami[0],
@@ -41,7 +41,7 @@ namespace Main
 
         private void UpdateMessages(ListBox listBox)
         {
-            string messages = serverCommunication.SendAndReceive("GetMessages|0|0");
+            string messages = serverCommunication.SendAndReceive("GetMessages", "0|0");
             string[] messages_parts = messages.Split("||");
 
             // Clear the existing items before adding new ones
@@ -67,7 +67,7 @@ namespace Main
             {
                 string message = MessageTextBox.Text;
                 string jsonContent = File.ReadAllText("registration_data.json");
-                string response = serverCommunication.SendAndReceive($"SendMessage|{message}|{jsonContent}|0");
+                string response = serverCommunication.SendAndReceive("SendMessage", $"{message}|{jsonContent}|0");
                 if (response == "True")
                 {
                     MessageBox.Show("Сообщение отправлено!");
