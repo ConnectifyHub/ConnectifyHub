@@ -129,7 +129,7 @@ namespace Server
             }
         }
 
-        public static string GetMessagesFromChat(string chatid/*, int page*/)
+        public static string GetMessagesFromChat(string chatid, int page)
         {
             using (var context = GetContext())
             {
@@ -139,11 +139,11 @@ namespace Server
                         .Where(m => m.ChatId == chatid)
                         .OrderByDescending(m => m.Sended);
 
-                    /*if (page > 0)
+                    if (page > 0)
                     {
                         var skippedMessages = messagesQuery.Skip((page - 1) * 10);
                         messagesQuery = (IOrderedQueryable<Message>)skippedMessages;
-                    }*/
+                    }
 
                     var messages = messagesQuery.Take(10).ToList();
 

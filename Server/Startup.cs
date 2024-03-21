@@ -1,21 +1,38 @@
-﻿using Server;
-using Server.Data.Entities;
-using System.IO;
+﻿using Server.Data.Entities;
+using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Server
 {
     class TcpServer
     {
         private TcpListener _tcpListener;
-        private Thread _listenerThread;
+        private readonly Dictionary<string, Func<string[], bool>> _validationMethods;
+        private readonly Dictionary<string, Action<User>> _databaseMethods;
 
         public TcpServer()
         {
             _tcpListener = new TcpListener(IPAddress.Any, 1234);
-            _listenerThread = new Thread(new ThreadStart(ListenForClients));
+            _validationMethods = new Dictionary<string, Func<string[], bool>>
+            {
+                { "IsValidEmail", ValidationHelper.IsValidEmail },
+                { "IsStrongPassword", ValidationHelper.IsStrongPassword },
+                { "IsValidFirstName", ValidationHelper.IsValidFirstName },
+                { "IsValidLastName", ValidationHelper.IsValidLastName },
+                { "IsValidPhoneNumber", ValidationHelper.IsValidPhoneNumber },
+                { "Login", ValidationHelper.IsValidEmailAndPassword }
+            };
+            _databaseMethods = new Dictionary<string, Action<User>>
+            {
+                { "RegisterMe", DatabaseUtils.AddUser },
+            };
+
+            Thread _listenerThread = new Thread(ListenForClients);
             _listenerThread.Start();
             Console.WriteLine("Server started!");
         }
@@ -27,25 +44,10 @@ namespace Server
             while (true)
             {
                 TcpClient client = _tcpListener.AcceptTcpClient();
-                Thread clientThread = new Thread(new ParameterizedThreadStart(HandleClientComm));
+                Thread clientThread = new Thread(HandleClientComm);
                 clientThread.Start(client);
             }
         }
-
-        private readonly Dictionary<string, Func<string[], bool>> validationMethods = new Dictionary<string, Func<string[], bool>>
-        {
-            { "IsValidEmail", ValidationHelper.IsValidEmail },
-            { "IsStrongPassword", ValidationHelper.IsStrongPassword },
-            { "IsValidFirstName", ValidationHelper.IsValidFirstName },
-            { "IsValidLastName", ValidationHelper.IsValidLastName },
-            { "IsValidPhoneNumber", ValidationHelper.IsValidPhoneNumber },
-            { "Login", ValidationHelper.IsValidEmailAndPassword }
-        };
-
-        private readonly Dictionary<string, Action<User>> databaseMethods = new Dictionary<string, Action<User>>
-        {
-            { "RegisterMe", DatabaseUtils.AddUser },
-        };
 
         private void HandleClientComm(object clientObj)
         {
@@ -77,71 +79,100 @@ namespace Server
                 if (receivedMessage.Contains("|"))
                 {
                     string[] parts = receivedMessage.Split('|');
-                    string leftPart = parts[0];
 
-                    bool isValid = false;
+                    Console.WriteLine("Endpoint " + parts[0]);
+
                     string customMessage = null;
+                    bool isValid = false;
 
-                    if (parts[1].Length != 0)
+                    if (parts[1].Length > 0)
                     {
-                        if (databaseMethods.TryGetValue(leftPart, out var databaseMethod))
+                        switch (parts[0])
                         {
-                            string userDataString = receivedMessage.Substring(leftPart.Length + 1);
-                            User userData = DataStrParser.ParseUserFromString(userDataString);
-                            string methodName = parts[0];
+                            case "SendMessage":
+                                DatabaseUtils.SendMessage(parts[1], parts[2], parts[3]);
+                                isValid = true;
+                                break;
+                            case "GetMessages":
+                                if (int.TryParse(parts[2], out int chatId))
+                                {
+                                    customMessage = DatabaseUtils.GetMessagesFromChat(parts[1], chatId);
+                                    isValid = true;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Invalid chat ID format.");
+                                }
+                                break;
+                            case "WhoAmI":
+                                customMessage = DatabaseUtils.GetUserByKeyStringified(parts[1]);
+                                isValid = true;
+                                break;
+                            case "LatestLoginInfo":
+                                var user = DatabaseUtils.GetUserByKey(parts[1]);
+                                customMessage = user != null ? user.Email : null;
+                                if (user != null)
+                                {
+                                    isValid = true;
+                                }
+                                break;
+                        }
 
+
+                        if (_databaseMethods.TryGetValue(parts[0], out var databaseMethod))
+                        {
+                            User userData = DataStrParser.ParseUserFromString(parts[1]);
                             databaseMethod(userData);
                             isValid = true;
                         }
-                        if (validationMethods.TryGetValue(leftPart, out var validationMethod))
+                        else if (_validationMethods.TryGetValue(parts[0], out var validationMethod))
                         {
-                            isValid = validationMethod(parts);
+                            Console.WriteLine("Received data parts:");
+                            foreach (var part in parts.Skip(1))
+                            {
+                                Console.WriteLine(part);
+                            }
+
+                            isValid = validationMethod(parts.Skip(1).ToArray());
                         }
 
-                        if (leftPart == "LatestLoginInfo")
+                        if (isValid)
                         {
-                            var user = DatabaseUtils.GetUserByKey(parts[1]);
-                            customMessage = user != null ? user.Email : null;
-                        }
-
-                        if (leftPart == "WhoAmI")
-                        {
-                            customMessage = DatabaseUtils.GetUserByKeyStringified(parts[1]);
-                        }
-
-                        if (leftPart == "SendMessage")
-                        {
-                            DatabaseUtils.SendMessage(parts[1], parts[2], parts[3]);
-                            isValid = true;
-                        }
-
-                        if (leftPart == "GetMessages")
-                        {
-                            customMessage = DatabaseUtils.GetMessagesFromChat(parts[1]);
-                        }
-
-                        if ((leftPart == "Login" || leftPart == "RegisterMe") && isValid == true)
-                        {
-                            customMessage = DatabaseUtils.GeneratePublicKey(parts[1]);
+                            if (parts[0] == "Login" || parts[0] == "RegisterMe")
+                            {
+                                Console.WriteLine("Generating PublicKey");
+                                customMessage = DatabaseUtils.GeneratePublicKey(parts[1]);
+                                Console.WriteLine(customMessage);
+                            }
+                        } else {
+                            customMessage = "False";
                         }
                     }
+                    else
+                    {
+                        customMessage = "False";
+                    }
 
-                    Console.WriteLine($"Sending response to client: {(customMessage != null ? customMessage : isValid)}");
-                    byte[] responseData = Encoding.UTF8.GetBytes(customMessage != null ? customMessage.ToString() : isValid.ToString());
+                    if (customMessage != null) {
+                        Console.WriteLine(customMessage);
+                    }
+
+                    var ready_answer = !string.IsNullOrEmpty(customMessage) ? customMessage : isValid.ToString();
+                    Console.WriteLine($"Sending response to client: " + ready_answer);
+                    byte[] responseData = Encoding.UTF8.GetBytes(ready_answer);
                     clientStream.Write(responseData, 0, responseData.Length);
-
                 }
             }
 
             tcpClient.Close();
         }
     }
-}
 
-class Program
-{
-    static void Main(string[] args)
+    class Program
     {
-        TcpServer server = new TcpServer();
+        static void Main(string[] args)
+        {
+            TcpServer server = new TcpServer();
+        }
     }
 }
