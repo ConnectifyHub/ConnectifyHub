@@ -46,22 +46,6 @@ namespace Main
             InitializeComponent();
             UpdateUser();
             WelcomeTextBlock.Text = $"С возвращением, (#{User.ID}) {User.Name} {User.Surname}!";
-
-            string chatsResponse = serverCommunication.SendAndReceive("WhatIsMyChats", jsonContent);
-            string[] chatDetails = chatsResponse.Split("||");
-            ChatSelectionComboBox.Items.Clear();
-            foreach (string chatDetail in chatDetails)
-            {
-                string[] parts = chatDetail.Split('|');
-                if (parts.Length >= 2)
-                {
-                    string chatName = parts[0];
-                    if (int.TryParse(parts[1], out int chatId))
-                    {
-                        ChatSelectionComboBox.Items.Add(new ComboBoxItem { Content = chatName, Tag = chatId });
-                    }
-                }
-            }
         }
 
         private void UpdateMessages(ListBox listBox)
@@ -83,6 +67,25 @@ namespace Main
             }
 
             listBox.ItemsSource = messagesList;
+        }
+
+        private void UpdateChats()
+        {
+            string chatsResponse = serverCommunication.SendAndReceive("WhatIsMyChats", jsonContent);
+            string[] chatDetails = chatsResponse.Split("||");
+            ChatSelectionComboBox.Items.Clear();
+            foreach (string chatDetail in chatDetails)
+            {
+                string[] parts = chatDetail.Split('|');
+                if (parts.Length >= 2)
+                {
+                    string chatName = parts[0];
+                    if (int.TryParse(parts[1], out int chatId))
+                    {
+                        ChatSelectionComboBox.Items.Add(new ComboBoxItem { Content = chatName, Tag = chatId });
+                    }
+                }
+            }
         }
 
         private void SendMessageButton_Click(object sender, RoutedEventArgs e)
@@ -118,6 +121,7 @@ namespace Main
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             UpdateMessages(ChatListBox);
+            UpdateChats();
         }
 
         private void UserIdTextBox_GotKeyboardFocus(object sender, RoutedEventArgs e)
