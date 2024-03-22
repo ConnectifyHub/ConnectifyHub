@@ -25,35 +25,59 @@ namespace Main
         ServerCommunication serverCommunication = ServerCommunication.Instance;
         public dynamic User { get; private set; }
         private ObservableCollection<Message> messagesList = new ObservableCollection<Message>();
-        public LoginedWindow()
+
+        string jsonContent = File.ReadAllText("registration_data.json");
+
+        private void UpdateUser()
         {
-            InitializeComponent();
-            var jsonContent = File.ReadAllText("registration_data.json");
-            string[] whoami = (serverCommunication.SendAndReceive("WhoAmI|", jsonContent)).Split("|");
+            string[] whoami = (serverCommunication.SendAndReceive("WhoAmI", jsonContent)).Split("|");
             User = new
             {
                 Email = whoami[0],
                 Name = whoami[1],
                 Surname = whoami[2],
+                Chat = whoami[3],
+                ID = whoami[4],
             };
-            WelcomeTextBlock.Text = $"С возвращением, {User.Name} {User.Surname}!";
+        }
+
+        public LoginedWindow()
+        {
+            InitializeComponent();
+            UpdateUser();
+            WelcomeTextBlock.Text = $"С возвращением, (#{User.ID}) {User.Name} {User.Surname}!";
+
+            string chatsResponse = serverCommunication.SendAndReceive("WhatIsMyChats", jsonContent);
+            string[] chatDetails = chatsResponse.Split("||");
+            ChatSelectionComboBox.Items.Clear();
+            foreach (string chatDetail in chatDetails)
+            {
+                string[] parts = chatDetail.Split('|');
+                if (parts.Length >= 2)
+                {
+                    string chatName = parts[0];
+                    if (int.TryParse(parts[1], out int chatId))
+                    {
+                        ChatSelectionComboBox.Items.Add(new ComboBoxItem { Content = chatName, Tag = chatId });
+                    }
+                }
+            }
         }
 
         private void UpdateMessages(ListBox listBox)
         {
-            string messages = serverCommunication.SendAndReceive("GetMessages", "0|0");
+            string messages = serverCommunication.SendAndReceive("GetMessages", $"{User.Chat}|0");
             string[] messages_parts = messages.Split("||");
 
-            // Clear the existing items before adding new ones
             messagesList.Clear();
 
             for (int i = 0; i < messages_parts.Length - 1; i++)
             {
                 var one_message = new Message
                 {
-                    Name = messages_parts[i].Split("|")[0],
+                    Name = $"(#{messages_parts[i].Split("|")[3]})" + messages_parts[i].Split("|")[0],
                     Text = messages_parts[i].Split("|")[1],
-                    Sended = messages_parts[i].Split("|")[2],
+                    Sended = messages_parts[i].Split("|")[2]
                 };
                 messagesList.Add(one_message);
             }
@@ -66,11 +90,10 @@ namespace Main
             if (MessageTextBox.Text != "")
             {
                 string message = MessageTextBox.Text;
-                string jsonContent = File.ReadAllText("registration_data.json");
-                string response = serverCommunication.SendAndReceive("SendMessage", $"{message}|{jsonContent}|0");
+               
+                string response = serverCommunication.SendAndReceive("SendMessage", $"{message}|{jsonContent}|{User.Chat}");
                 if (response == "True")
                 {
-                    MessageBox.Show("Сообщение отправлено!");
                     MessageTextBox.Text = "";
                     UpdateMessages(ChatListBox);
                 }
@@ -95,6 +118,39 @@ namespace Main
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             UpdateMessages(ChatListBox);
+        }
+
+        private void UserIdTextBox_GotKeyboardFocus(object sender, RoutedEventArgs e)
+        {
+            if (UserIdTextBox.Text == "Укажите User ID для чата")
+            {
+                UserIdTextBox.Text = "";
+            }
+        }
+
+        private void UserIdTextBox_LostKeyboardFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(UserIdTextBox.Text))
+            {
+                UserIdTextBox.Text = "Укажите User ID для чата";
+            } else
+            {
+                serverCommunication.SendAndReceive("CreateChatWith", $"{jsonContent}|{UserIdTextBox.Text}");
+            }
+        }
+
+        private void ChatSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ComboBoxItem selectedComboBoxItem = (ComboBoxItem)ChatSelectionComboBox.SelectedItem;
+            if (selectedComboBoxItem != null && selectedComboBoxItem.Tag != null && int.TryParse(selectedComboBoxItem.Tag.ToString(), out int chatId))
+            {
+                var res = serverCommunication.SendAndReceive("SwitchChat", $"{jsonContent}|{chatId}");
+                if (res == "True")
+                {
+                    UpdateUser();
+                    UpdateMessages(ChatListBox);
+                }
+            }
         }
     }
 
