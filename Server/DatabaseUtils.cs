@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Server.Data.Entities;
 using Server.Data;
 using Newtonsoft.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace Server
 {
@@ -71,7 +72,7 @@ namespace Server
                 var user = context.Users.FirstOrDefault(u => u.PublicIdentityKey == key);
                 if (user != null)
                 {
-                    return $"{user.Email}|{user.Name}|{user.Surname}";
+                    return $"{user.Email}|{user.Name}|{user.Surname}|{user.ChatIdSelected}|{user.Id}";
                 }
                 return null;
             }
@@ -146,16 +147,13 @@ namespace Server
                     }
 
                     var messages = messagesQuery.Take(10).ToList();
-
                     StringBuilder stringBuilder = new StringBuilder();
-
                     foreach (var message in messages)
                     {
                         var user = context.Users.FirstOrDefault(u => u.Id == message.AuthorId);
-
                         if (user != null)
                         {
-                            stringBuilder.Append($"{user.Name}|{message.Text}|{message.Sended}||");
+                            stringBuilder.Append($"{user.Name}|{message.Text}|{message.Sended}|{user.Id}||");
                         }
                     }
 
@@ -163,7 +161,6 @@ namespace Server
                 }
                 catch (Exception ex)
                 {
-                    // Handle exceptions (e.g., log or return an error message).
                     return $"Error retrieving messages: {ex.Message}";
                 }
             }
@@ -187,6 +184,62 @@ namespace Server
             }
         }
 
+        public static string GetChatsForUserAsString(string identityToken)
+        {
+            using (var context = GetContext())
+            {
+                StringBuilder stringBuilder = new StringBuilder();
+
+                try
+                {
+                    var user = context.Users.First(u => u.PublicIdentityKey == identityToken);
+                    var chatUserEntries = context.ChatUsers.Where(cu => cu.UserId == user.Id).ToList();
+                    var chatIds = chatUserEntries.Select(cu => cu.ChatId).ToList();
+                    var chats = context.Chats.Where(c => chatIds.Contains(c.Id)).ToList();
+
+                    foreach (var chat in chats)
+                    {
+                        stringBuilder.Append($"{chat.Name}|{chat.Id}||");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error retrieving chats for user: {ex.Message}");
+                }
+
+                stringBuilder.Append("Global|0||");
+
+                return stringBuilder.ToString();
+            }
+        }
+
+        public static void CreateChat(string identityToken, int userId2)
+        {
+            using (var context = GetContext())
+            {
+                var user = context.Users.First(u => u.PublicIdentityKey == identityToken);
+                var user1 = context.Users.FirstOrDefault(cu => cu.Id == user.Id);
+                var user2 = context.Users.FirstOrDefault(cu2 => cu2.Id == userId2);
+
+                if (user1 == null || user2 == null)
+                {
+                    Console.WriteLine("One or both users not found.");
+                    return;
+                }
+
+                var chat = new Chat { AuthorId = user.Id, Name = $"{user1.Name} & {user2.Name}" };
+
+                context.Chats.Add(chat);
+                context.SaveChanges();
+
+                var chatUser1 = new ChatUser { ChatId = chat.Id, UserId = user.Id };
+                var chatUser2 = new ChatUser { ChatId = chat.Id, UserId = userId2 };
+
+                context.ChatUsers.AddRange(chatUser1, chatUser2);
+                context.SaveChanges();
+            }
+        }
+
         public static void DeleteUser(int userId)
         {
             using (var context = GetContext())
@@ -196,6 +249,19 @@ namespace Server
                 if (userToDelete != null)
                 {
                     context.Users.Remove(userToDelete);
+                    context.SaveChanges();
+                }
+            }
+        }
+
+        public static void SwitchChat(string identityToken, int chatId)
+        {
+            using (var context = GetContext())
+            {
+                var user = context.Users.First(u => u.PublicIdentityKey == identityToken);
+                if (user != null)
+                {
+                    user.ChatIdSelected = chatId;
                     context.SaveChanges();
                 }
             }

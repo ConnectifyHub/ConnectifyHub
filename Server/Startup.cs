@@ -94,19 +94,37 @@ namespace Server
                                 isValid = true;
                                 break;
                             case "GetMessages":
-                                if (int.TryParse(parts[2], out int chatId))
+                                if (int.TryParse(parts[2], out int secondArgument))
                                 {
-                                    customMessage = DatabaseUtils.GetMessagesFromChat(parts[1], chatId);
+                                    customMessage = DatabaseUtils.GetMessagesFromChat(parts[1], secondArgument);
                                     isValid = true;
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Invalid chat ID format.");
+                                    Console.WriteLine("Invalid arguments format.");
                                 }
                                 break;
                             case "WhoAmI":
                                 customMessage = DatabaseUtils.GetUserByKeyStringified(parts[1]);
                                 isValid = true;
+                                break;
+                            case "WhatIsMyChats":
+                                customMessage = DatabaseUtils.GetChatsForUserAsString(parts[1]);
+                                isValid = true;
+                                break;
+                            case "CreateChatWith":
+                                if (parts.Length > 2 && int.TryParse(parts[2], out int HisUserId))
+                                {
+                                    DatabaseUtils.CreateChat(parts[1], HisUserId);
+                                    isValid = true;
+                                }
+                                break;
+                            case "SwitchChat":
+                                if (parts.Length > 2 && int.TryParse(parts[2], out int ChatId))
+                                {
+                                    DatabaseUtils.SwitchChat(parts[1], ChatId);
+                                    isValid = true;
+                                }
                                 break;
                             case "LatestLoginInfo":
                                 var user = DatabaseUtils.GetUserByKey(parts[1]);
@@ -121,7 +139,12 @@ namespace Server
 
                         if (_databaseMethods.TryGetValue(parts[0], out var databaseMethod))
                         {
-                            User userData = DataStrParser.ParseUserFromString(parts[1]);
+                            Console.WriteLine("Received data parts:");
+                            foreach (var part in parts.Skip(1))
+                            {
+                                Console.WriteLine(part);
+                            }
+                            User userData = DataStrParser.ParseUserFromString(parts.Skip(1).ToArray());
                             databaseMethod(userData);
                             isValid = true;
                         }

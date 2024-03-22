@@ -9,18 +9,19 @@ namespace Server
 {
     internal class DataStrParser
     {
-        public static User ParseUserFromString(string userData)
+        public static User ParseUserFromString(string[] parts)
         {
-            string[] parts = userData.Split('|');
 
-            // Assuming your User class has these properties
-            User newUser = new User
-            {
-                Email = parts[0],
-                Password = parts[1],
-                Name = parts[2],
-                Surname = parts[3]
-            };
+            User newUser = new User();
+
+            if (parts.Length > 0)
+                newUser.Email = parts[0];
+            if (parts.Length > 1)
+                newUser.Password = parts[1];
+            if (parts.Length > 2)
+                newUser.Name = parts[2];
+            if (parts.Length > 3)
+                newUser.Surname = parts[3];
 
             return newUser;
         }
