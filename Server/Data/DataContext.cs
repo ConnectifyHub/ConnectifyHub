@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.IO;
+using Server.Data.Entities;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -7,8 +8,10 @@ namespace Server.Data
 {
     public class DataContext : DbContext
     {
-        public DbSet<Entities.User> Users { get; set; }
-        public DbSet<Entities.Message> Messages { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<Chat> Chats { get; set; }
+        public DbSet<ChatUser> ChatUsers { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
